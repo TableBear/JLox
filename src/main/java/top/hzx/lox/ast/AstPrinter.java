@@ -1,7 +1,7 @@
 package top.hzx.lox.ast;
 
-import top.hzx.lox.common.Token;
-import top.hzx.lox.common.TokenType;
+import top.hzx.lox.token.Token;
+import top.hzx.lox.token.TokenType;
 
 public class AstPrinter implements Expr.Visitor<String> {
 

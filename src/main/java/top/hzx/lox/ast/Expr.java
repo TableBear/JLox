@@ -1,9 +1,7 @@
 package top.hzx.lox.ast;
 
-import java.util.List;
-
 import lombok.Getter;
-import top.hzx.lox.common.Token;
+import top.hzx.lox.token.Token;
 
 @SuppressWarnings("unused")
 public abstract class Expr {

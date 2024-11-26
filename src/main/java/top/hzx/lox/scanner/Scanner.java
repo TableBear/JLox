@@ -1,8 +1,8 @@
 package top.hzx.lox.scanner;
 
 import top.hzx.lox.Lox;
-import top.hzx.lox.common.Token;
-import top.hzx.lox.common.TokenType;
+import top.hzx.lox.token.Token;
+import top.hzx.lox.token.TokenType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

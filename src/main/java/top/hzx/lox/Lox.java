@@ -1,11 +1,14 @@
 package top.hzx.lox;
 
-import top.hzx.lox.common.Token;
+import top.hzx.lox.ast.AstPrinter;
+import top.hzx.lox.ast.Expr;
+import top.hzx.lox.parser.Parser;
+import top.hzx.lox.token.Token;
 import top.hzx.lox.scanner.Scanner;
+import top.hzx.lox.token.TokenType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -52,13 +55,24 @@ public class Lox {
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        Parser parser = new Parser(tokens);
+        Expr expr = parser.parse();
+
+        if (hadError) return;
+
+        System.out.println(new AstPrinter().print(expr));
     }
 
     public static void error(int line, String message) {
         report(line, "", message);
+    }
+
+    public static void error(Token token, String message) {
+        if (token.getType() == TokenType.EOF) {
+            report(token.getLine(), " at end", message);
+        } else {
+            report(token.getLine(), " at '" + token.getLexeme() + "'", message);
+        }
     }
 
     private static void report(int line, String where, String message) {

@@ -1,4 +1,4 @@
-package top.hzx.lox.common;
+package top.hzx.lox.token;
 
 public enum TokenType {
     // Single-character tokens.
