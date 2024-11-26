@@ -1,10 +1,11 @@
 package top.hzx.lox;
 
-import top.hzx.lox.ast.AstPrinter;
 import top.hzx.lox.ast.Expr;
+import top.hzx.lox.ast.Interpreter;
+import top.hzx.lox.err.RuntimeError;
 import top.hzx.lox.parser.Parser;
-import top.hzx.lox.token.Token;
 import top.hzx.lox.scanner.Scanner;
+import top.hzx.lox.token.Token;
 import top.hzx.lox.token.TokenType;
 
 import java.io.BufferedReader;
@@ -17,7 +18,10 @@ import java.util.List;
 
 public class Lox {
 
+    private static final Interpreter interpreter = new Interpreter();
+
     private static boolean hadError = false;
+    private static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -37,6 +41,9 @@ public class Lox {
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
             System.exit(65);
+        }
+        if (hadRuntimeError) {
+            System.exit(70);
         }
     }
 
@@ -60,7 +67,7 @@ public class Lox {
 
         if (hadError) return;
 
-        System.out.println(new AstPrinter().print(expr));
+        interpreter.interpret(expr);
     }
 
     public static void error(int line, String message) {
@@ -73,6 +80,11 @@ public class Lox {
         } else {
             report(token.getLine(), " at '" + token.getLexeme() + "'", message);
         }
+    }
+
+    public static void runtimeError(RuntimeError error) {
+        System.err.println(error.getMessage() + "\n[line " + error.getToken().getLine() + "]");
+        hadRuntimeError = true;
     }
 
     private static void report(int line, String where, String message) {
