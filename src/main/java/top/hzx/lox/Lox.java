@@ -1,7 +1,7 @@
 package top.hzx.lox;
 
-import top.hzx.lox.ast.Expr;
 import top.hzx.lox.ast.Interpreter;
+import top.hzx.lox.ast.Stmt;
 import top.hzx.lox.err.RuntimeError;
 import top.hzx.lox.parser.Parser;
 import top.hzx.lox.scanner.Scanner;
@@ -63,11 +63,11 @@ public class Lox {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
-        Expr expr = parser.parse();
+        List<Stmt> stmts = parser.parse();
 
         if (hadError) return;
 
-        interpreter.interpret(expr);
+        interpreter.interpret(stmts);
     }
 
     public static void error(int line, String message) {

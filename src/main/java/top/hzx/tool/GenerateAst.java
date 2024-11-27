@@ -13,10 +13,14 @@ public class GenerateAst {
         }
         String outputDir = args[0];
         defineAst(outputDir, "Expr", Arrays.asList(
-                "Binary     : Expr left, Token operator, Expr right",
-                "Grouping   : Expr expression",
                 "Literal    : Object value",
-                "Unary      : Token operator, Expr right"
+                "Unary      : Token operator, Expr right",
+                "Binary     : Expr left, Token operator, Expr right",
+                "Grouping   : Expr expression"
+        ));
+        defineAst(outputDir, "Stmt", Arrays.asList(
+                "Expression : Expr expression",
+                "Print      : Expr expression"
         ));
     }
 
@@ -28,7 +32,7 @@ public class GenerateAst {
         writer.println("import java.util.List;");
         writer.println();
         writer.println("import lombok.Getter;");
-        writer.println("import top.hzx.lox.common.Token;");
+        writer.println("import top.hzx.lox.token.Token;");
         writer.println();
         writer.println("@SuppressWarnings(\"unused\")");
         writer.println("public abstract class " + baseName + " {");

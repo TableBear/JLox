@@ -1,9 +1,11 @@
 package top.hzx.lox.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import top.hzx.lox.Lox;
 import top.hzx.lox.ast.Expr;
+import top.hzx.lox.ast.Stmt;
 import top.hzx.lox.err.ParseError;
 import top.hzx.lox.token.Token;
 import top.hzx.lox.token.TokenType;
@@ -18,15 +20,32 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    public Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError e) {
-            return null;
+    public List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+        return statements;
     }
 
-    public Expr expression() {
+    private Stmt statement() {
+        if (match(TokenType.PRINT)) return printStatement();
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Expr expression() {
         return equality();
     }
 
