@@ -23,13 +23,34 @@ public class Parser {
     public List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
         return statements;
     }
 
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt varDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+        Expr initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
     private Stmt statement() {
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
     }
 
@@ -39,6 +60,15 @@ public class Parser {
         return new Stmt.Print(value);
     }
 
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
     private Stmt expressionStatement() {
         Expr expr = expression();
         consume(TokenType.SEMICOLON, "Expect ';' after expression.");
@@ -46,7 +76,21 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return assignment();
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).getName();
+                return new Expr.Assign(name, value);
+            }
+            throw error(equals, "Invalid assignment target.");
+        }
+        return expr;
     }
 
     private Expr equality() {
@@ -103,6 +147,9 @@ public class Parser {
         if (match(TokenType.TRUE)) return new Expr.Literal(true);
         if (match(TokenType.NIL)) return new Expr.Literal(null);
         if (match(TokenType.NUMBER, TokenType.STRING)) return new Expr.Literal(previous().getLiteral());
+        if (match(TokenType.IDENTIFIER)) {
+            return new Expr.Variable(previous());
+        }
         if (match(TokenType.LEFT_PAREN)) {
             Expr expr = expression();
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
@@ -111,6 +158,11 @@ public class Parser {
         throw error(peek(), "Expect expression.");
     }
 
+    /**
+     * 判断是否匹配，如果匹配就前进一步
+     * @param types 要匹配的类型
+     * @return true 表示匹配成功，false 表示匹配失败
+     */
     private boolean match(TokenType... types) {
         for (TokenType type : types) {
             if (check(type)) {
@@ -121,12 +173,20 @@ public class Parser {
         return false;
     }
 
+    /**
+     * 判断是否匹配，但是不前进Token
+     * @param type 要匹配的类型
+     * @return true 表示匹配成功，false 表示匹配失败
+     */
     private boolean check(TokenType type) {
         if (isAtEnd()) return false;
         return peek().getType() == type;
     }
 
-    @SuppressWarnings("unused")
+    /**
+     * 前进一步
+     * @return 前进一步后的前一个Token
+     */
     private Token advance() {
         if (!isAtEnd()) current++;
         return previous();
@@ -144,7 +204,12 @@ public class Parser {
         return tokens.get(current - 1);
     }
 
-    @SuppressWarnings("all")
+    /**
+     * 匹配成功就前进一步，否则抛出异常
+     * @param type 要匹配的类型
+     * @param message 错误描述
+     * @return 前进一步后的前一个Token
+     */
     private Token consume(TokenType type, String message) {
         if (check(type)) return advance();
         throw error(peek(), message);
@@ -156,9 +221,8 @@ public class Parser {
     }
 
     /**
-     * 跳过当前错误，寻找下一个合法语句的位置
+     * 跳过当前错误，寻找下一个合法语句开始的位置
      */
-    @SuppressWarnings("unused")
     private void  synchronize() {
         advance();
         while (!isAtEnd()) {

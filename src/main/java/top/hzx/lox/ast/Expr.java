@@ -9,10 +9,12 @@ import top.hzx.lox.token.Token;
 public abstract class Expr {
 
     public interface Visitor<R> {
-        R visitLiteralExpr(Literal expr);
-        R visitUnaryExpr(Unary expr);
-        R visitBinaryExpr(Binary expr);
-        R visitGroupingExpr(Grouping expr);
+        default R  visitLiteralExpr(Literal expr) { return null; }
+        default R  visitUnaryExpr(Unary expr) { return null; }
+        default R  visitAssignExpr(Assign expr) { return null; }
+        default R  visitBinaryExpr(Binary expr) { return null; }
+        default R  visitGroupingExpr(Grouping expr) { return null; }
+        default R  visitVariableExpr(Variable expr) { return null; }
     }
 
     @Getter
@@ -48,6 +50,23 @@ public abstract class Expr {
     }
 
     @Getter
+    public static class Assign extends Expr {
+
+        private final Token name;
+        private final Expr value;
+
+        public Assign(Token name, Expr value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitAssignExpr(this);
+        }
+    }
+
+    @Getter
     public static class Binary extends Expr {
 
         private final Expr left;
@@ -78,6 +97,21 @@ public abstract class Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitGroupingExpr(this);
+        }
+    }
+
+    @Getter
+    public static class Variable extends Expr {
+
+        private final Token name;
+
+        public Variable(Token name) {
+            this.name = name;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVariableExpr(this);
         }
     }
 

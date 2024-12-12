@@ -9,8 +9,25 @@ import top.hzx.lox.token.Token;
 public abstract class Stmt {
 
     public interface Visitor<R> {
-        R visitExpressionStmt(Expression stmt);
-        R visitPrintStmt(Print stmt);
+        default R  visitBlockStmt(Block stmt) { return null; }
+        default R  visitExpressionStmt(Expression stmt) { return null; }
+        default R  visitPrintStmt(Print stmt) { return null; }
+        default R  visitVarStmt(Var stmt) { return null; }
+    }
+
+    @Getter
+    public static class Block extends Stmt {
+
+        private final List<Stmt> statements;
+
+        public Block(List<Stmt> statements) {
+            this.statements = statements;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBlockStmt(this);
+        }
     }
 
     @Getter
@@ -40,6 +57,23 @@ public abstract class Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitPrintStmt(this);
+        }
+    }
+
+    @Getter
+    public static class Var extends Stmt {
+
+        private final Token name;
+        private final Expr initializer;
+
+        public Var(Token name, Expr initializer) {
+            this.name = name;
+            this.initializer = initializer;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVarStmt(this);
         }
     }
 

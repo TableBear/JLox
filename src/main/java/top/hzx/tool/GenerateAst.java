@@ -15,12 +15,16 @@ public class GenerateAst {
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Literal    : Object value",
                 "Unary      : Token operator, Expr right",
+                "Assign     : Token name, Expr value",
                 "Binary     : Expr left, Token operator, Expr right",
-                "Grouping   : Expr expression"
+                "Grouping   : Expr expression",
+                "Variable   : Token name"
         ));
         defineAst(outputDir, "Stmt", Arrays.asList(
+                "Block      : List<Stmt> statements",
                 "Expression : Expr expression",
-                "Print      : Expr expression"
+                "Print      : Expr expression",
+                "Var        : Token name, Expr initializer"
         ));
     }
 
@@ -93,7 +97,8 @@ public class GenerateAst {
         writer.println("    public interface Visitor<R> {");
         for (String type : types) {
             String typeName = type.split(":")[0].trim();
-            writer.println("        R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+            // 增加默认实现便于维护
+            writer.println("        default R  visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ") { return null; }");
         }
         writer.println("    }");
     }
