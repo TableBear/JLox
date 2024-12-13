@@ -10,6 +10,7 @@ public abstract class Expr {
 
     public interface Visitor<R> {
         default R  visitLiteralExpr(Literal expr) { return null; }
+        default R  visitLogicalExpr(Logical expr) { return null; }
         default R  visitUnaryExpr(Unary expr) { return null; }
         default R  visitAssignExpr(Assign expr) { return null; }
         default R  visitBinaryExpr(Binary expr) { return null; }
@@ -29,6 +30,25 @@ public abstract class Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitLiteralExpr(this);
+        }
+    }
+
+    @Getter
+    public static class Logical extends Expr {
+
+        private final Expr left;
+        private final Token operator;
+        private final Expr right;
+
+        public Logical(Expr left, Token operator, Expr right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLogicalExpr(this);
         }
     }
 

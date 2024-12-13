@@ -4,6 +4,7 @@ import top.hzx.lox.Lox;
 import top.hzx.lox.env.Environment;
 import top.hzx.lox.err.RuntimeError;
 import top.hzx.lox.token.Token;
+import top.hzx.lox.token.TokenType;
 
 import java.util.List;
 
@@ -180,5 +181,35 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } finally {
             this.environment = previous;
         }
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.getCondition()))) {
+            execute(stmt.getThenBranch());
+        } else if (stmt.getElseBranch() != null) {
+            execute(stmt.getElseBranch());
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.getLeft());
+        if (expr.getOperator().getType() == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.getRight());
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        while (isTruthy(evaluate(stmt.getCondition()))) {
+            execute(stmt.getBody());
+        }
+        return null;
     }
 }
