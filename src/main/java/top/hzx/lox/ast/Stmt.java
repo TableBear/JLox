@@ -11,8 +11,10 @@ public abstract class Stmt {
     public interface Visitor<R> {
         default R  visitBlockStmt(Block stmt) { return null; }
         default R  visitExpressionStmt(Expression stmt) { return null; }
+        default R  visitFunctionStmt(Function stmt) { return null; }
         default R  visitIfStmt(If stmt) { return null; }
         default R  visitPrintStmt(Print stmt) { return null; }
+        default R  visitReturnStmt(Return stmt) { return null; }
         default R  visitVarStmt(Var stmt) { return null; }
         default R  visitWhileStmt(While stmt) { return null; }
     }
@@ -48,6 +50,25 @@ public abstract class Stmt {
     }
 
     @Getter
+    public static class Function extends Stmt {
+
+        private final Token name;
+        private final List<Token> params;
+        private final List<Stmt> body;
+
+        public Function(Token name, List<Token> params, List<Stmt> body) {
+            this.name = name;
+            this.params = params;
+            this.body = body;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitFunctionStmt(this);
+        }
+    }
+
+    @Getter
     public static class If extends Stmt {
 
         private final Expr condition;
@@ -78,6 +99,23 @@ public abstract class Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitPrintStmt(this);
+        }
+    }
+
+    @Getter
+    public static class Return extends Stmt {
+
+        private final Token keyword;
+        private final Expr value;
+
+        public Return(Token keyword, Expr value) {
+            this.keyword = keyword;
+            this.value = value;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitReturnStmt(this);
         }
     }
 

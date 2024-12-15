@@ -14,6 +14,7 @@ public abstract class Expr {
         default R  visitUnaryExpr(Unary expr) { return null; }
         default R  visitAssignExpr(Assign expr) { return null; }
         default R  visitBinaryExpr(Binary expr) { return null; }
+        default R  visitCallExpr(Call expr) { return null; }
         default R  visitGroupingExpr(Grouping expr) { return null; }
         default R  visitVariableExpr(Variable expr) { return null; }
     }
@@ -102,6 +103,25 @@ public abstract class Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitBinaryExpr(this);
+        }
+    }
+
+    @Getter
+    public static class Call extends Expr {
+
+        private final Expr callee;
+        private final Token paren;
+        private final List<Expr> arguments;
+
+        public Call(Expr callee, Token paren, List<Expr> arguments) {
+            this.callee = callee;
+            this.paren = paren;
+            this.arguments = arguments;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCallExpr(this);
         }
     }
 
