@@ -1,6 +1,7 @@
 package top.hzx.lox;
 
 import top.hzx.lox.ast.Interpreter;
+import top.hzx.lox.ast.Resolver;
 import top.hzx.lox.ast.Stmt;
 import top.hzx.lox.err.RuntimeError;
 import top.hzx.lox.parser.Parser;
@@ -66,7 +67,9 @@ public class Lox {
         List<Stmt> stmts = parser.parse();
 
         if (hadError) return;
-
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(stmts);
+        if (hadError) return;
         interpreter.interpret(stmts);
     }
 
