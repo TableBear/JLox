@@ -11,10 +11,13 @@ public abstract class Expr {
     public interface Visitor<R> {
         default R  visitLiteralExpr(Literal expr) { return null; }
         default R  visitLogicalExpr(Logical expr) { return null; }
+        default R  visitSetExpr(Set expr) { return null; }
+        default R  visitThisExpr(This expr) { return null; }
         default R  visitUnaryExpr(Unary expr) { return null; }
         default R  visitAssignExpr(Assign expr) { return null; }
         default R  visitBinaryExpr(Binary expr) { return null; }
         default R  visitCallExpr(Call expr) { return null; }
+        default R  visitGetExpr(Get expr) { return null; }
         default R  visitGroupingExpr(Grouping expr) { return null; }
         default R  visitVariableExpr(Variable expr) { return null; }
     }
@@ -50,6 +53,40 @@ public abstract class Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitLogicalExpr(this);
+        }
+    }
+
+    @Getter
+    public static class Set extends Expr {
+
+        private final Expr object;
+        private final Token name;
+        private final Expr value;
+
+        public Set(Expr object, Token name, Expr value) {
+            this.object = object;
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSetExpr(this);
+        }
+    }
+
+    @Getter
+    public static class This extends Expr {
+
+        private final Token keyword;
+
+        public This(Token keyword) {
+            this.keyword = keyword;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitThisExpr(this);
         }
     }
 
@@ -122,6 +159,23 @@ public abstract class Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitCallExpr(this);
+        }
+    }
+
+    @Getter
+    public static class Get extends Expr {
+
+        private final Expr object;
+        private final Token name;
+
+        public Get(Expr object, Token name) {
+            this.object = object;
+            this.name = name;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGetExpr(this);
         }
     }
 

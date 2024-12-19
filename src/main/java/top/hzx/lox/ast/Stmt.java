@@ -10,6 +10,7 @@ public abstract class Stmt {
 
     public interface Visitor<R> {
         default R  visitBlockStmt(Block stmt) { return null; }
+        default R  visitClassStmt(Class stmt) { return null; }
         default R  visitExpressionStmt(Expression stmt) { return null; }
         default R  visitFunctionStmt(Function stmt) { return null; }
         default R  visitIfStmt(If stmt) { return null; }
@@ -31,6 +32,23 @@ public abstract class Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitBlockStmt(this);
+        }
+    }
+
+    @Getter
+    public static class Class extends Stmt {
+
+        private final Token name;
+        private final List<Stmt.Function> methods;
+
+        public Class(Token name, List<Stmt.Function> methods) {
+            this.name = name;
+            this.methods = methods;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassStmt(this);
         }
     }
 

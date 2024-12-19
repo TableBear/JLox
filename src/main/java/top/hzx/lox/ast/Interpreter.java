@@ -215,6 +215,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        environment.define(stmt.getName().getLexeme(), null);
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Stmt.Function method : stmt.getMethods()) {
+            LoxFunction function = new LoxFunction(method, environment, method.getName().getLexeme().equals("init"));
+            methods.put(method.getName().getLexeme(), function);
+        }
+
+        LoxClass klass = new LoxClass(stmt.getName().getLexeme(), methods);
+        environment.assign(stmt.getName(), klass);
+        return null;
+    }
+
     public void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
         try {
@@ -250,6 +264,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        Object object = evaluate(expr.getObject());
+        if (!(object instanceof LoxInstance)) {
+            throw new RuntimeError(expr.getName(), "Only instances have fields.");
+        }
+
+        Object value = evaluate(expr.getValue());
+        ((LoxInstance) object).set(expr.getName(), value);
+        return value;
+    }
+
+    @Override
+    public Object visitThisExpr(Expr.This expr) {
+        return lookUpVariable(expr.getKeyword(), expr);
+    }
+
+    @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.getCondition()))) {
             execute(stmt.getBody());
@@ -276,8 +307,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        Object object = evaluate(expr.getObject());
+        if (object instanceof LoxInstance) {
+            return ((LoxInstance) object).get(expr.getName());
+        }
+        throw new RuntimeError(expr.getName(), "Only instances have properties.");
+    }
+
+
+    @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        LoxFunction function = new LoxFunction(stmt, environment);
+        LoxFunction function = new LoxFunction(stmt, environment, false);
         environment.define(stmt.getName().getLexeme(), function);
         return null;
     }
@@ -287,6 +328,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = null;
         if (stmt.getValue() != null) value = evaluate(stmt.getValue());
         // 使用异常包装返回值，并throw出去。跳过所有的程序栈
-        throw  new Return(value);
+        throw new Return(value);
     }
 }
