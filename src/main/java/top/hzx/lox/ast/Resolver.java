@@ -29,7 +29,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private enum ClassType {
         NONE,
         CLASS,
-        SUBCLASS
+        SUBCLASS,
     }
 
     private enum FunctionType {
@@ -75,6 +75,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         currentClass = ClassType.CLASS;
         declare(stmt.getName());
         define(stmt.getName());
+        if (stmt.getSuperclass() != null && stmt.getName().getLexeme().equals(stmt.getSuperclass().getName().getLexeme())) {
+            Lox.error(stmt.getSuperclass().getName(), "A class can't inherit from itself.");
+        }
+        if (stmt.getSuperclass() != null) {
+            currentClass = ClassType.SUBCLASS;
+            resolve(stmt.getSuperclass());
+        }
+        if (stmt.getSuperclass() != null) {
+            beginScope();
+            scopes.peek().put("super", true);
+        }
         beginScope();
         scopes.peek().put("this", true);
         for (Stmt.Function method : stmt.getMethods()) {
@@ -85,6 +96,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolveFunction(method, declaration);
         }
         endScope();
+        if (stmt.getSuperclass() != null) {
+            endScope();
+        }
         currentClass = enclosingClass;
         return null;
     }
@@ -249,6 +263,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitSetExpr(Expr.Set expr) {
         resolve(expr.getValue());
         resolve(expr.getObject());
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpr(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.getKeyword(), "Can't use 'super' outside of a class.");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(expr.getKeyword(), "Can't use 'super' in a class with no superclass.");
+        }
+        resolveLocal(expr, expr.getKeyword());
         return null;
     }
 

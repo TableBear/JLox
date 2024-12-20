@@ -12,6 +12,7 @@ public abstract class Expr {
         default R  visitLiteralExpr(Literal expr) { return null; }
         default R  visitLogicalExpr(Logical expr) { return null; }
         default R  visitSetExpr(Set expr) { return null; }
+        default R  visitSuperExpr(Super expr) { return null; }
         default R  visitThisExpr(This expr) { return null; }
         default R  visitUnaryExpr(Unary expr) { return null; }
         default R  visitAssignExpr(Assign expr) { return null; }
@@ -72,6 +73,23 @@ public abstract class Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visitSetExpr(this);
+        }
+    }
+
+    @Getter
+    public static class Super extends Expr {
+
+        private final Token keyword;
+        private final Token method;
+
+        public Super(Token keyword, Token method) {
+            this.keyword = keyword;
+            this.method = method;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSuperExpr(this);
         }
     }
 

@@ -1,11 +1,13 @@
 package top.hzx.lox.env;
 
+import lombok.Getter;
 import top.hzx.lox.err.RuntimeError;
 import top.hzx.lox.token.Token;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class Environment {
 
     private final Environment enclosing;
@@ -60,4 +62,5 @@ public class Environment {
     public void assignAt(int distance, Token name, Object value) {
         ancestor(distance).values.put(name.getLexeme(), value);
     }
+
 }
